@@ -1,0 +1,24 @@
+{# templates/catalog/search.html #}
+{% extends "common.html" %}
+
+{% block title %}Search: {{ q }}{% endblock %}
+
+{% block content %}
+<main class="page">
+  <h1>{% if q %}Results for "{{ q }}"{% else %}Search{% endif %}</h1>
+  {% if results %}
+  <div class="grid">
+    {% for t in results %}
+    <a class="card" href="{{ t.get_absolute_url }}" title="{{ t.title }}">
+      {% if t.poster %}<img src="{{ t.poster.url }}" alt="{{ t.title }}" loading="lazy">{% endif %}
+      <span>{{ t.title }}</span>
+    </a>
+    {% endfor %}
+  </div>
+  {% elif q %}
+  <p class="muted">Nothing found. Try a different spelling.</p>
+  {% else %}
+  <p class="muted">Type at least 2 characters.</p>
+  {% endif %}
+</main>
+{% endblock %}

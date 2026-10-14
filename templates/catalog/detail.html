@@ -1,0 +1,81 @@
+{# templates/catalog/detail.html #}
+{% extends "common.html" %}
+
+{% block title %}{{ title.title }} - StreamFlix{% endblock %}
+
+{% block content %}
+<main class="page detail">
+  {% if source_url %}
+  <video id="player" controls playsinline
+         {% if title.backdrop %}poster="{{ title.backdrop.url }}"{% endif %}
+         data-src="{{ source_url }}"
+         data-start="{{ start }}"
+         data-title="{{ title.id }}"
+         data-episode="{{ episode.id|default:'' }}"
+         data-csrf="{{ csrf_token }}"
+         data-save="{% url 'catalog:progress' %}"
+         data-auth="{{ request.user.is_authenticated|yesno:'1,0' }}">
+    {% if episode and episode.subtitles %}
+    <track kind="subtitles" src="{{ episode.subtitles.url }}" srclang="en" label="English" default>
+    {% endif %}
+  </video>
+  {% else %}
+  <div class="no-video">No video uploaded yet.</div>
+  {% endif %}
+
+  <h1>{{ title.title }}{% if title.year %} <small>({{ title.year }})</small>{% endif %}</h1>
+  <p class="meta">
+    {{ title.get_kind_display }}
+    {% if title.rating %} · ★ {{ title.rating }}{% endif %}
+    {% for g in title.genres.all %} · {{ g.name }}{% endfor %}
+  </p>
+  <p>{{ title.overview }}</p>
+
+  {% for season in title.seasons.all %}
+  <h2>Season {{ season.number }}</h2>
+  <ul class="episodes">
+    {% for ep in season.episodes.all %}
+    <li{% if episode and ep.id == episode.id %} class="on"{% endif %}>
+      <a href="?ep={{ ep.id }}">E{{ ep.number }}{% if ep.name %} · {{ ep.name }}{% endif %}</a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endfor %}
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js"></script>
+<script>
+const v = document.getElementById("player");
+if (v) {
+  const { src, start, title, episode, csrf, save, auth } = v.dataset;
+
+  if (src.includes(".m3u8") && !v.canPlayType("application/vnd.apple.mpegurl") && window.Hls?.isSupported()) {
+    const hls = new Hls();
+    hls.loadSource(src);
+    hls.attachMedia(v);
+  } else {
+    v.src = src;
+  }
+
+  v.addEventListener("loadedmetadata", () => {
+    if (+start > 5) v.currentTime = +start;
+  }, { once: true });
+
+  if (auth === "1") {
+    let last = 0;
+    const send = () => fetch(save, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": csrf },
+      body: JSON.stringify({ title, episode: episode || null, seconds: Math.floor(v.currentTime) }),
+      keepalive: true,
+    });
+    v.addEventListener("timeupdate", () => {
+      if (Date.now() - last > 15000) { last = Date.now(); send(); }
+    });
+    v.addEventListener("pause", send);
+  }
+}
+</script>
+{% endblock %}

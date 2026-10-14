@@ -1,0 +1,38 @@
+{# templates/catalog/home.html #}
+{% extends "common.html" %}
+
+{% block content %}
+{% if hero %}
+<section class="hero"
+  {% if hero.backdrop %}style="background-image:linear-gradient(to top,#141414 2%,transparent 50%),linear-gradient(to right,#000c 15%,transparent 65%),url('{{ hero.backdrop.url }}');background-size:cover"{% endif %}>
+  <div class="hero-info">
+    <h1>{{ hero.title }}</h1>
+    <p>{{ hero.overview|truncatechars:220 }}</p>
+    <div class="btns">
+      <a class="btn play" href="{{ hero.get_absolute_url }}">▶ Play</a>
+      <a class="btn info" href="{{ hero.get_absolute_url }}">ⓘ More Info</a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<main>
+  {% for name, titles in rows %}
+  {% if titles %}
+  <section class="row">
+    <h2>{{ name }}</h2>
+    <button type="button" class="arrow l" aria-label="Scroll left">‹</button>
+    <div class="track">
+      {% for t in titles %}
+      <a class="card" href="{{ t.get_absolute_url }}" title="{{ t.title }}">
+        {% if t.poster %}<img src="{{ t.poster.url }}" alt="{{ t.title }}" loading="lazy">{% endif %}
+        <span>{{ t.title }}</span>
+      </a>
+      {% endfor %}
+    </div>
+    <button type="button" class="arrow r" aria-label="Scroll right">›</button>
+  </section>
+  {% endif %}
+  {% endfor %}
+</main>
+{% endblock %}

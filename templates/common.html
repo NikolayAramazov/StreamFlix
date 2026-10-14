@@ -1,0 +1,30 @@
+{# templates/common.html #}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}StreamFlix{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/common.css' %}">
+  <link rel="stylesheet" href="{% static 'css/catalog.css' %}">
+</head>
+<body>
+  <header class="nav">
+    <a class="logo" href="{% url 'catalog:home' %}">STREAMFLIX</a>
+    <nav>
+      <a href="{% url 'catalog:home' %}">Home</a>
+    </nav>
+    <form class="tools" action="{% url 'catalog:search' %}" method="get">
+      <input id="q" name="q" class="search" type="search" placeholder="Search..." autocomplete="off" value="{{ q|default:'' }}">
+      <div id="results" class="results"></div>
+      <span class="avatar"></span>
+    </form>
+  </header>
+
+  {% block content %}{% endblock %}
+
+  <script src="{% static 'js/common.js' %}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
